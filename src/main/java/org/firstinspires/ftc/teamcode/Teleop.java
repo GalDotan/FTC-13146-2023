@@ -93,7 +93,7 @@ public class Teleop extends LinearOpMode {
                     turret.set_power(0);
                     turret_front = 0;
                 }else{
-                    turret.set_power(0.2);
+                    turret.set_power(0.3);
                 }
             }
 
@@ -102,7 +102,7 @@ public class Teleop extends LinearOpMode {
                     turret.set_power(0);
                     turret_back = 0;
                 }else{
-                    turret.set_power(-0.2);
+                    turret.set_power(-0.3);
                 }
             }
 

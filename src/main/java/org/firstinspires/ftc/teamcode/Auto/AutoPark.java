@@ -163,7 +163,7 @@ public class AutoPark extends LinearOpMode
         drive.setPoseEstimate(startPose);
 
         Trajectory Forward = drive.trajectoryBuilder(startPose)
-                .forward(tile+2)
+                .forward(tile)
                 .build();
 
         Trajectory Back = drive.trajectoryBuilder(startPose)

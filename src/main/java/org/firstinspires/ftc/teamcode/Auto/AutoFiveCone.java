@@ -1,23 +1,3 @@
-/*
- * Copyright (c) 2021 OpenFTC Team
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 
 package org.firstinspires.ftc.teamcode.Auto;
 
@@ -63,7 +43,8 @@ public class AutoFiveCone extends LinearOpMode
     public Lift lift;
     public Turret turret;
 
-    double tile = 20;
+    int active = 1;
+    double tile = 24;
     // UNITS ARE METERS
     double tagsize = 0.166;
 
@@ -81,7 +62,7 @@ public class AutoFiveCone extends LinearOpMode
         gripper = new Gripper(hardwareMap);
         lift = new Lift(hardwareMap);
         turret = new Turret(hardwareMap);
-        //gripper.setpose(0);
+        gripper.setpose(0);
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -172,67 +153,76 @@ public class AutoFiveCone extends LinearOpMode
          * The START command just came in: now work off the latest snapshot acquired
          * during the init loop.
          */
+        while (opModeIsActive() && active ==1) {
 
-        /* Update the telemetry */
-        if(tagOfInterest != null)
-        {
-            telemetry.addLine("Tag snapshot:\n");
-            tagToTelemetry(tagOfInterest);
-            telemetry.update();
+            /* Update the telemetry */
+            if (tagOfInterest != null) {
+                telemetry.addLine("Tag snapshot:\n");
+                tagToTelemetry(tagOfInterest);
+                telemetry.update();
+            } else {
+                telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
+                telemetry.update();
+            }
+
+
+            Pose2d end = new Pose2d(36, -55 + tile * 2, Math.toRadians(180));
+            Pose2d startPose = new Pose2d(36, -58, Math.toRadians(90));
+
+            drive.setPoseEstimate(startPose);
+
+            TrajectorySequence Spline_test = drive.trajectorySequenceBuilder(startPose)
+                    .addDisplacementMarker(2, () -> {
+                        lift.high_pole();
+                    })
+                    .splineToConstantHeading(new Vector2d(31.8, -30.6), Math.toRadians(90))
+                    .splineToLinearHeading(new Pose2d(27.8, -12.8, Math.toRadians(135)), Math.toRadians(135))
+                    .addDisplacementMarker(() -> {
+                        gripper.setpose(1);
+                    })
+                    .splineToLinearHeading(new Pose2d(55, -16.1, Math.toRadians(180)), Math.toRadians(180))
+                    .addTemporalMarker(4.5, () -> {
+                        turret.Move_Back();
+                        lift.Stack_5();
+                    })
+                    .build();
+
+
+
+
+
+
+            /* Actually do something useful */
+            if (tagOfInterest.id == LEFT) {
+                telemetry.addLine("Left");
+                telemetry.update();
+                drive.followTrajectorySequence(Spline_test);
+                telemetry.addLine("Leftt auto finished");
+                telemetry.update();
+                PoseStorage.currentPose = drive.getPoseEstimate();
+                active = 0;
+            } else if (tagOfInterest.id == MIDDLE) {
+                telemetry.addLine("Middle");
+                telemetry.update();
+                drive.followTrajectorySequence(Spline_test);
+                telemetry.addLine("Middle auto finished");
+                telemetry.update();
+                PoseStorage.currentPose = drive.getPoseEstimate();
+                active = 0;
+            } else if (tagOfInterest.id == RIGHT) {
+                telemetry.addLine("Right");
+                telemetry.update();
+                drive.followTrajectorySequence(Spline_test);
+                telemetry.addLine("Right auto finished");
+                telemetry.update();
+                PoseStorage.currentPose = drive.getPoseEstimate();
+                active = 0;
+
+            }
+
         }
-        else
-        {
-            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
-            telemetry.update();
-        }
 
 
-        Pose2d end = new Pose2d(36,-55+tile*2,Math.toRadians(180));
-        Pose2d startPose = new Pose2d(36, -58,Math.toRadians(90) );
-
-        drive.setPoseEstimate(startPose);
-
-        TrajectorySequence Spline_test = drive.trajectorySequenceBuilder(startPose)
-                .splineToLinearHeading(end,Math.toRadians(0))
-                //.turn(Math.toRadians(90))
-                //.back(tile)
-                //.splineTo(new Vector2d(24,0),Math.toRadians(0))
-                .build();
-
-
-
-        TrajectorySequence Tg1 = drive.trajectorySequenceBuilder(startPose)
-                .forward(tile+tile/2)
-                .turn(Math.toRadians(-45))
-                .forward(5)
-                .back(5)
-                .turn(Math.toRadians(45))
-                .lineToLinearHeading(new Pose2d(34, -12,Math.toRadians(180)))
-                .build();
-
-
-
-
-        /* Actually do something useful */
-        if(tagOfInterest.id == LEFT){
-            telemetry.addLine("Left");
-            telemetry.update();
-            drive.followTrajectorySequence(Spline_test);
-        }else if(tagOfInterest.id == MIDDLE){
-            telemetry.addLine("Middle");
-            telemetry.update();
-            //gripper.setpose(0);
-            drive.followTrajectorySequence(Tg1);
-        }else if(tagOfInterest.id == RIGHT){
-            telemetry.addLine("Right");
-            telemetry.update();
-            drive.followTrajectorySequence(Tg1);
-
-        }
-
-
-        /* You wouldn't have this in your autonomous, this is just to prevent the sample from ending */
-        while (opModeIsActive()) {sleep(20);}
     }
 
     void tagToTelemetry(AprilTagDetection detection)
