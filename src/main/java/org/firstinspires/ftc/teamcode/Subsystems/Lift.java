@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 public class Lift {
 
     private DcMotorEx Lift_drive = null;
-    private static int high_pol_ticks = 3330;
-    private static int mid_pol_ticks = 2900;
-    private static int low_pol_ticks = 1474;
+    private static int high_pol_ticks = 3470;
+    private static int mid_pol_ticks = 2400;
+    private static int low_pol_ticks = 1540;
     private static int intake_hight_ticks = 0;
     private static int front_robot_ticks = 0;
     private static int back_robot_ticks = -280 ;
@@ -41,6 +41,10 @@ public class Lift {
 
     public void mid_pole(){
         set_encoder(mid_pol_ticks,-0.8);
+    }
+
+    public void high_pole_auto(){
+        set_encoder(high_pol_ticks-50,-0.8);
     }
 
     public void high_pole(){

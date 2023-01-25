@@ -1,4 +1,3 @@
-
 package org.firstinspires.ftc.teamcode.Auto;
 
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
@@ -62,7 +61,7 @@ public class AutoFiveCone extends LinearOpMode
         gripper = new Gripper(hardwareMap);
         lift = new Lift(hardwareMap);
         turret = new Turret(hardwareMap);
-        gripper.setpose(0);
+
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -175,47 +174,64 @@ public class AutoFiveCone extends LinearOpMode
                     .addDisplacementMarker(2, () -> {
                         lift.high_pole();
                     })
-                    .splineToConstantHeading(new Vector2d(31.8, -30.6), Math.toRadians(90))
-                    .splineToLinearHeading(new Pose2d(27.8, -12.8, Math.toRadians(135)), Math.toRadians(135))
+                    .splineToConstantHeading(new Vector2d(32.8, -30.6), Math.toRadians(90))
+                    .splineToLinearHeading(new Pose2d(27.2, -10, Math.toRadians(135)), Math.toRadians(140))
                     .addDisplacementMarker(() -> {
                         gripper.setpose(1);
                     })
-                    .splineToLinearHeading(new Pose2d(55, -16.1, Math.toRadians(180)), Math.toRadians(180))
+                    /*.splineToLinearHeading(new Pose2d(55, -16.1, Math.toRadians(180)), Math.toRadians(180))
                     .addTemporalMarker(4.5, () -> {
                         turret.Move_Back();
                         lift.Stack_5();
                     })
+                     */
+                    .back(5)
+                    .turn(Math.toRadians(-45))
+                    .build();
+
+            TrajectorySequence Right = drive.trajectorySequenceBuilder(Spline_test.end())
+                    .strafeRight(tile)
+                    .build();
+
+            TrajectorySequence Left = drive.trajectorySequenceBuilder(Spline_test.end())
+                    .strafeLeft(tile)
                     .build();
 
 
-
-
-
-
             /* Actually do something useful */
+            gripper.setpose(0);
+            sleep(1000);
             if (tagOfInterest.id == LEFT) {
                 telemetry.addLine("Left");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
-                telemetry.addLine("Leftt auto finished");
-                telemetry.update();
+                drive.followTrajectorySequence(Left);
                 PoseStorage.currentPose = drive.getPoseEstimate();
+                lift.intake();
+                sleep(5000);
+                telemetry.addLine("Left auto finished");
+                telemetry.update();
                 active = 0;
             } else if (tagOfInterest.id == MIDDLE) {
                 telemetry.addLine("Middle");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
+                PoseStorage.currentPose = drive.getPoseEstimate();
+                lift.intake();
+                sleep(5000);
                 telemetry.addLine("Middle auto finished");
                 telemetry.update();
-                PoseStorage.currentPose = drive.getPoseEstimate();
                 active = 0;
             } else if (tagOfInterest.id == RIGHT) {
                 telemetry.addLine("Right");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
+                drive.followTrajectorySequence(Right);
+                lift.intake();
+                sleep(5000);
+                PoseStorage.currentPose = drive.getPoseEstimate();
                 telemetry.addLine("Right auto finished");
                 telemetry.update();
-                PoseStorage.currentPose = drive.getPoseEstimate();
                 active = 0;
 
             }
