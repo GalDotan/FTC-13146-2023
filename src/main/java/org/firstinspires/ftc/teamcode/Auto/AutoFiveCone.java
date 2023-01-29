@@ -100,7 +100,7 @@ public class AutoFiveCone extends LinearOpMode
                     lift.high_pole();
                 })
                 .splineToConstantHeading(new Vector2d(32.8, -30.6), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(28.5, -11.3, Math.toRadians(140)), Math.toRadians(140))
+                .splineToLinearHeading(new Pose2d(28, -10.3, Math.toRadians(140)), Math.toRadians(140))
                 .addDisplacementMarker(() -> {
                     gripper.setpose(1);
                     lift.Stack_5();
@@ -110,13 +110,14 @@ public class AutoFiveCone extends LinearOpMode
                     turret.set_encoder(240,-0.6);
                 })
                 .lineToLinearHeading(new Pose2d(44,-14.4,Math.toRadians(180)))
-                .lineToLinearHeading(new Pose2d(56,-16.7,Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(58,-16.7,Math.toRadians(180)))
                 .addTemporalMarker(6, ()-> {
                     gripper.setpose(0);
                 })
                 .addTemporalMarker(7,()-> {
                     lift.high_pole();
                 })
+                .waitSeconds(5)
                 .lineToLinearHeading(new Pose2d(44,-14.4,Math.toRadians(180)))
                 .lineToLinearHeading(new Pose2d(34,-14.4,Math.toRadians(135)))
                 .addDisplacementMarker(() -> {
@@ -225,6 +226,9 @@ public class AutoFiveCone extends LinearOpMode
                 telemetry.addLine("Left");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
+                drive.followTrajectorySequence(Left);
+                lift.intake();
+                sleep(5000);
                 PoseStorage.currentPose = drive.getPoseEstimate();
                 telemetry.addLine("Left auto finished");
                 telemetry.update();
@@ -234,6 +238,8 @@ public class AutoFiveCone extends LinearOpMode
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
                 PoseStorage.currentPose = drive.getPoseEstimate();
+                lift.intake();
+                sleep(5000);
                 telemetry.addLine("Middle auto finished");
                 telemetry.update();
                 active = 0;
@@ -241,7 +247,9 @@ public class AutoFiveCone extends LinearOpMode
                 telemetry.addLine("Right");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
-                //drive.followTrajectorySequence(Right);
+                drive.followTrajectorySequence(Right);
+                lift.intake();
+                sleep(5000);
                 PoseStorage.currentPose = drive.getPoseEstimate();
                 telemetry.addLine("Right auto finished");
                 telemetry.update();
