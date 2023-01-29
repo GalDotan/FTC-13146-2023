@@ -40,9 +40,9 @@ public class Turret {
 
     public void set_encoder(int ticks,double velo){
         Turret.setTargetPosition(ticks);
-        Turret.setVelocityPIDFCoefficients(13,0,0,1 );
+        //Turret.setVelocityPIDFCoefficients(13,0,0,1 );
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setVelocity(velo);
+        Turret.setPower(velo);
     }
 
     public void Move_Back(){

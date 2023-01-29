@@ -49,7 +49,7 @@ import java.util.List;
  * user to reset the position of the bot in the event that it drifts off the path.
  * Pressing B/O (Xbox/PS4) will cede control back to the tuning process.
  */
-@Disabled
+
 @Config
 @Autonomous(group = "drive")
 public class DriveVelocityPIDTuner extends LinearOpMode {
@@ -136,8 +136,9 @@ public class DriveVelocityPIDTuner extends LinearOpMode {
                                 motionState.getV() - velocities.get(i)
                         );
                     }
+
                     break;
-                case DRIVER_MODE:
+                    case DRIVER_MODE:
                     if (gamepad1.b) {
                         drive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 

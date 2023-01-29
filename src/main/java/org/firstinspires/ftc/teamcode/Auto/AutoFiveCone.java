@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Subsystems.Drivebase;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -61,7 +63,7 @@ public class AutoFiveCone extends LinearOpMode
         gripper = new Gripper(hardwareMap);
         lift = new Lift(hardwareMap);
         turret = new Turret(hardwareMap);
-
+        ElapsedTime timer = new ElapsedTime();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -84,6 +86,57 @@ public class AutoFiveCone extends LinearOpMode
         });
 
         telemetry.setMsTransmissionInterval(50);
+
+        Pose2d end = new Pose2d(36, -55 + tile * 2, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(36, -58, Math.toRadians(90));
+
+        drive.setPoseEstimate(startPose);
+
+        TrajectorySequence Spline_test = drive.trajectorySequenceBuilder(startPose)
+                .addTemporalMarker(0, () -> {
+                    gripper.setpose(0);
+                })
+                .addTemporalMarker(1, () -> {
+                    lift.high_pole();
+                })
+                .splineToConstantHeading(new Vector2d(32.8, -30.6), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(28.5, -11.3, Math.toRadians(140)), Math.toRadians(140))
+                .addDisplacementMarker(() -> {
+                    gripper.setpose(1);
+                    lift.Stack_5();
+                })
+                .lineToConstantHeading(new Vector2d(34,-12.4))
+                .addDisplacementMarker(() -> {
+                    turret.set_encoder(240,-0.6);
+                })
+                .lineToLinearHeading(new Pose2d(44,-14.4,Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(56,-16.7,Math.toRadians(180)))
+                .addTemporalMarker(6, ()-> {
+                    gripper.setpose(0);
+                })
+                .addTemporalMarker(7,()-> {
+                    lift.high_pole();
+                })
+                .lineToLinearHeading(new Pose2d(44,-14.4,Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(34,-14.4,Math.toRadians(135)))
+                .addDisplacementMarker(() -> {
+                    turret.set_encoder(0,0.6);
+                })
+                .splineToLinearHeading(new Pose2d(28.5, -11.3, Math.toRadians(135)), Math.toRadians(140))
+                .addDisplacementMarker(() -> {
+                    gripper.setpose(1);
+                })
+                .back(10)
+                .turn(Math.toRadians(-45))
+                .build();
+
+        TrajectorySequence Right = drive.trajectorySequenceBuilder(Spline_test.end())
+                .strafeRight(tile)
+                .build();
+
+        TrajectorySequence Left = drive.trajectorySequenceBuilder(Spline_test.end())
+                .strafeLeft(tile)
+                .build();
 
         /*
          * The INIT-loop:
@@ -165,50 +218,14 @@ public class AutoFiveCone extends LinearOpMode
             }
 
 
-            Pose2d end = new Pose2d(36, -55 + tile * 2, Math.toRadians(180));
-            Pose2d startPose = new Pose2d(36, -58, Math.toRadians(90));
-
-            drive.setPoseEstimate(startPose);
-
-            TrajectorySequence Spline_test = drive.trajectorySequenceBuilder(startPose)
-                    .addDisplacementMarker(2, () -> {
-                        lift.high_pole();
-                    })
-                    .splineToConstantHeading(new Vector2d(32.8, -30.6), Math.toRadians(90))
-                    .splineToLinearHeading(new Pose2d(27.2, -10, Math.toRadians(135)), Math.toRadians(140))
-                    .addDisplacementMarker(() -> {
-                        gripper.setpose(1);
-                    })
-                    /*.splineToLinearHeading(new Pose2d(55, -16.1, Math.toRadians(180)), Math.toRadians(180))
-                    .addTemporalMarker(4.5, () -> {
-                        turret.Move_Back();
-                        lift.Stack_5();
-                    })
-                     */
-                    .back(5)
-                    .turn(Math.toRadians(-45))
-                    .build();
-
-            TrajectorySequence Right = drive.trajectorySequenceBuilder(Spline_test.end())
-                    .strafeRight(tile)
-                    .build();
-
-            TrajectorySequence Left = drive.trajectorySequenceBuilder(Spline_test.end())
-                    .strafeLeft(tile)
-                    .build();
 
 
             /* Actually do something useful */
-            gripper.setpose(0);
-            sleep(1000);
             if (tagOfInterest.id == LEFT) {
                 telemetry.addLine("Left");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
-                drive.followTrajectorySequence(Left);
                 PoseStorage.currentPose = drive.getPoseEstimate();
-                lift.intake();
-                sleep(5000);
                 telemetry.addLine("Left auto finished");
                 telemetry.update();
                 active = 0;
@@ -217,8 +234,6 @@ public class AutoFiveCone extends LinearOpMode
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
                 PoseStorage.currentPose = drive.getPoseEstimate();
-                lift.intake();
-                sleep(5000);
                 telemetry.addLine("Middle auto finished");
                 telemetry.update();
                 active = 0;
@@ -226,9 +241,7 @@ public class AutoFiveCone extends LinearOpMode
                 telemetry.addLine("Right");
                 telemetry.update();
                 drive.followTrajectorySequence(Spline_test);
-                drive.followTrajectorySequence(Right);
-                lift.intake();
-                sleep(5000);
+                //drive.followTrajectorySequence(Right);
                 PoseStorage.currentPose = drive.getPoseEstimate();
                 telemetry.addLine("Right auto finished");
                 telemetry.update();
@@ -244,11 +257,11 @@ public class AutoFiveCone extends LinearOpMode
     void tagToTelemetry(AprilTagDetection detection)
     {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
-        telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x));
-        telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y));
-        telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z));
-        telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
-        telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
-        telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
+        //telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x));
+        //telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y));
+        //telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z));
+        //telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
+        //telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
+        //telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
     }
 }
